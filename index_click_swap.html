@@ -1,0 +1,545 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>그림 정렬 게임</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; text-align: center; }
+    #container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .image-box {
+      width: 180px;
+      height: 100px;
+      border: 2px solid #ccc;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: move;
+    }
+    .image-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #check-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>순서대로 그림을 정렬해보세요!</h1>
+  
+    <div id="controls" style="margin-bottom: 15px;">
+      <label>제한 시간: 
+        <input type="number" id="set-time" value="60" min="10" max="900"> 초
+      </label>
+      <button id="start-btn">🎮 게임 시작</button>
+<button id="pause-btn">⏸ 일시정지</button>
+      <button id="check-btn">✅ 정답 확인</button>
+  <div id="timer">⏱ 남은 시간: <span id="time">0</span>초</div>
+  <div id="result"></div>
+
+  <script src="jquery.min.js">
+
+let score = 0;
+
+function updateScore(value) {
+  score += value;
+  document.getElementById("score").textContent = score;
+}
+
+
+function getSelectedTime() {
+  const level = document.getElementById("difficulty").value;
+  if (level === "easy") return 900;   // 15분
+  if (level === "hard") return 300;   // 5분
+  return 600;                         // 보통: 10분
+}
+
+
+document.getElementById("start-btn").addEventListener("click", function () {
+  const customTime = getSelectedTime();
+  if (typeof startTimer === "function") {
+    startTimer(customTime);
+  }
+  if (typeof shuffle === "function" && typeof renderImages === "function") {
+    shuffled = shuffle([...images]);
+    renderImages(shuffled);
+  }
+  document.getElementById("result").textContent = "";
+});
+
+document.getElementById("check-btn").addEventListener("click", function () {
+  const current = Array.from(document.querySelectorAll(".image-box")).map(
+    (el) => el.getAttribute("data-src")
+  );
+  const correct = [...images];
+  const correctCount = current.reduce(
+    (acc, val, idx) => acc + (val === correct[idx] ? 1 : 0),
+    0
+  );
+  const isPerfect = correctCount === images.length;
+  const resultBox = document.getElementById("result");
+  if (isPerfect) {
+    resultBox.textContent = `✅ 정답입니다! (${correctCount} / ${images.length})`;
+    updateScore(10);
+  } else {
+    resultBox.textContent = `❌ ${correctCount}개 맞았습니다. 다시 시도해보세요.`;
+    updateScore(-5);
+  }
+});
+
+
+let isPaused = false;
+
+document.getElementById("pause-btn").addEventListener("click", function () {
+  if (isPaused) {
+    isPaused = false;
+    this.textContent = "⏸ 일시정지";
+    document.getElementById("timer").style.color = "";
+  } else {
+    isPaused = true;
+    this.textContent = "▶ 다시 시작";
+    document.getElementById("timer").style.color = "gray";
+  }
+});
+
+function startTimer(limit) {
+  clearInterval(timer);
+  timeLeft = limit;
+  document.getElementById("time").textContent = timeLeft;
+  timer = setInterval(() => {
+    if (!isPaused) {
+      timeLeft--;
+      document.getElementById("time").textContent = timeLeft;
+      const timeDisplay = document.getElementById("timer");
+      if (timeLeft <= 30) {
+        timeDisplay.style.color = "red";
+      } else {
+        timeDisplay.style.color = "";
+      }
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        document.getElementById("result").textContent = "⏰ 시간이 초과되었습니다! 다시 시도해보세요.";
+      }
+    }
+  }, 1000);
+}
+
+
+document.getElementById("difficulty").addEventListener("change", function () {
+  const level = this.value;
+  const setTimeInput = document.getElementById("set-time");
+  if (level === "easy") setTimeInput.value = 900;
+  else if (level === "hard") setTimeInput.value = 300;
+  else setTimeInput.value = 600;
+});
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const difficulty = document.getElementById("difficulty");
+  const setTimeInput = document.getElementById("set-time");
+  if (difficulty && setTimeInput) {
+    function syncDifficultyTime() {
+      if (difficulty.value === "hard") setTimeInput.value = 900;
+      else if (difficulty.value === "medium") setTimeInput.value = 600;
+      else setTimeInput.value = 300;
+    }
+    difficulty.addEventListener("change", syncDifficultyTime);
+    syncDifficultyTime(); // 초기 반영
+  }
+});
+
+</script>
+  <script src="jquery-ui.min.js">
+
+let score = 0;
+
+function updateScore(value) {
+  score += value;
+  document.getElementById("score").textContent = score;
+}
+
+
+function getSelectedTime() {
+  const level = document.getElementById("difficulty").value;
+  if (level === "easy") return 900;   // 15분
+  if (level === "hard") return 300;   // 5분
+  return 600;                         // 보통: 10분
+}
+
+
+document.getElementById("start-btn").addEventListener("click", function () {
+  const customTime = getSelectedTime();
+  if (typeof startTimer === "function") {
+    startTimer(customTime);
+  }
+  if (typeof shuffle === "function" && typeof renderImages === "function") {
+    shuffled = shuffle([...images]);
+    renderImages(shuffled);
+  }
+  document.getElementById("result").textContent = "";
+});
+
+document.getElementById("check-btn").addEventListener("click", function () {
+  const current = Array.from(document.querySelectorAll(".image-box")).map(
+    (el) => el.getAttribute("data-src")
+  );
+  const correct = [...images];
+  const correctCount = current.reduce(
+    (acc, val, idx) => acc + (val === correct[idx] ? 1 : 0),
+    0
+  );
+  const isPerfect = correctCount === images.length;
+  const resultBox = document.getElementById("result");
+  if (isPerfect) {
+    resultBox.textContent = `✅ 정답입니다! (${correctCount} / ${images.length})`;
+    updateScore(10);
+  } else {
+    resultBox.textContent = `❌ ${correctCount}개 맞았습니다. 다시 시도해보세요.`;
+    updateScore(-5);
+  }
+});
+
+
+let isPaused = false;
+
+document.getElementById("pause-btn").addEventListener("click", function () {
+  if (isPaused) {
+    isPaused = false;
+    this.textContent = "⏸ 일시정지";
+    document.getElementById("timer").style.color = "";
+  } else {
+    isPaused = true;
+    this.textContent = "▶ 다시 시작";
+    document.getElementById("timer").style.color = "gray";
+  }
+});
+
+function startTimer(limit) {
+  clearInterval(timer);
+  timeLeft = limit;
+  document.getElementById("time").textContent = timeLeft;
+  timer = setInterval(() => {
+    if (!isPaused) {
+      timeLeft--;
+      document.getElementById("time").textContent = timeLeft;
+      const timeDisplay = document.getElementById("timer");
+      if (timeLeft <= 30) {
+        timeDisplay.style.color = "red";
+      } else {
+        timeDisplay.style.color = "";
+      }
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        document.getElementById("result").textContent = "⏰ 시간이 초과되었습니다! 다시 시도해보세요.";
+      }
+    }
+  }, 1000);
+}
+
+
+document.getElementById("difficulty").addEventListener("change", function () {
+  const level = this.value;
+  const setTimeInput = document.getElementById("set-time");
+  if (level === "easy") setTimeInput.value = 900;
+  else if (level === "hard") setTimeInput.value = 300;
+  else setTimeInput.value = 600;
+});
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const difficulty = document.getElementById("difficulty");
+  const setTimeInput = document.getElementById("set-time");
+  if (difficulty && setTimeInput) {
+    function syncDifficultyTime() {
+      if (difficulty.value === "hard") setTimeInput.value = 900;
+      else if (difficulty.value === "medium") setTimeInput.value = 600;
+      else setTimeInput.value = 300;
+    }
+    difficulty.addEventListener("change", syncDifficultyTime);
+    syncDifficultyTime(); // 초기 반영
+  }
+});
+
+</script>
+  <script>
+
+  const images = ["images/01.jpeg", "images/02.jpeg", "images/03.jpeg", "images/04.jpeg", "images/05.jpeg", "images/06.jpeg", "images/07.jpeg", "images/08.jpeg", "images/09.jpeg", "images/10.jpeg", "images/11.jpeg", "images/12.jpeg", "images/13.jpeg", "images/14.jpeg", "images/15.jpeg", "images/16.jpeg", "images/17.jpeg", "images/18.jpeg", "images/19.jpeg", "images/20.jpeg", "images/21.jpeg", "images/22.jpeg", "images/23.jpeg", "images/24.jpeg", "images/25.jpeg", "images/26.jpeg", "images/27.jpeg", "images/28.jpeg", "images/29.jpeg", "images/30.jpeg"];
+  let timer;
+  let timeLeft = 60;
+  let shuffled = [];
+
+  function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  function renderImages(arr) {
+    $("#container").empty();
+    for (let img of arr) {
+      $('#container').append(`<div class="image-box" data-src="${img}"><img src="${img}"></div>`);
+    }
+    $("#container").sortable();
+  }
+
+  function startTimer(limit) {
+    clearInterval(timer);
+    timeLeft = limit;
+    $("#time").text(timeLeft);
+    timer = setInterval(() => {
+      timeLeft--;
+      $("#time").text(timeLeft);
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        $("#result").text("⏰ 시간이 초과되었습니다! 다시 시도해보세요.");
+      }
+    }, 1000);
+  }
+
+  $(function() {
+  shuffled = shuffle([...images]);
+  renderImages(shuffled);
+    $("#start-btn").click(function() {
+      const customTime = parseInt($("#set-time").val());
+      if (isNaN(customTime) || customTime < 10 || customTime > 900) {
+        alert("10초 이상 900초 이하로 설정해주세요.");
+        return;
+      }
+      shuffled = shuffle([...images]);
+      renderImages(shuffled);
+      startTimer(customTime);
+      $("#result").text("");
+    });
+
+    $("#shuffle-btn").click(function() {
+      shuffled = shuffle([...images]);
+      renderImages(shuffled);
+      $("#result").text("");
+    });
+
+    $("#check-btn").click(function() {
+      let current = $(".image-box").map(function() {
+        return $(this).data("src");
+      }).get();
+      let correct = [...images];
+      let correctCount = current.reduce((acc, val, idx) => acc + (val === correct[idx] ? 1 : 0), 0);
+      let isPerfect = correctCount === images.length;
+      $("#result").text(isPerfect ? `✅ 정답입니다! (${correctCount} / ${images.length})` : `❌ ${correctCount}개 맞았습니다. 다시 시도해보세요.`);
+    });
+  });
+
+
+
+let score = 0;
+
+function updateScore(value) {
+  score += value;
+  document.getElementById("score").textContent = score;
+}
+
+
+function getSelectedTime() {
+  const level = document.getElementById("difficulty").value;
+  if (level === "easy") return 900;   // 15분
+  if (level === "hard") return 300;   // 5분
+  return 600;                         // 보통: 10분
+}
+
+
+document.getElementById("start-btn").addEventListener("click", function () {
+  const customTime = getSelectedTime();
+  if (typeof startTimer === "function") {
+    startTimer(customTime);
+  }
+  if (typeof shuffle === "function" && typeof renderImages === "function") {
+    shuffled = shuffle([...images]);
+    renderImages(shuffled);
+  }
+  document.getElementById("result").textContent = "";
+});
+
+document.getElementById("check-btn").addEventListener("click", function () {
+  const current = Array.from(document.querySelectorAll(".image-box")).map(
+    (el) => el.getAttribute("data-src")
+  );
+  const correct = [...images];
+  const correctCount = current.reduce(
+    (acc, val, idx) => acc + (val === correct[idx] ? 1 : 0),
+    0
+  );
+  const isPerfect = correctCount === images.length;
+  const resultBox = document.getElementById("result");
+  if (isPerfect) {
+    resultBox.textContent = `✅ 정답입니다! (${correctCount} / ${images.length})`;
+    updateScore(10);
+  } else {
+    resultBox.textContent = `❌ ${correctCount}개 맞았습니다. 다시 시도해보세요.`;
+    updateScore(-5);
+  }
+});
+
+
+let isPaused = false;
+
+document.getElementById("pause-btn").addEventListener("click", function () {
+  if (isPaused) {
+    isPaused = false;
+    this.textContent = "⏸ 일시정지";
+    document.getElementById("timer").style.color = "";
+  } else {
+    isPaused = true;
+    this.textContent = "▶ 다시 시작";
+    document.getElementById("timer").style.color = "gray";
+  }
+});
+
+function startTimer(limit) {
+  clearInterval(timer);
+  timeLeft = limit;
+  document.getElementById("time").textContent = timeLeft;
+  timer = setInterval(() => {
+    if (!isPaused) {
+      timeLeft--;
+      document.getElementById("time").textContent = timeLeft;
+      const timeDisplay = document.getElementById("timer");
+      if (timeLeft <= 30) {
+        timeDisplay.style.color = "red";
+      } else {
+        timeDisplay.style.color = "";
+      }
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        document.getElementById("result").textContent = "⏰ 시간이 초과되었습니다! 다시 시도해보세요.";
+      }
+    }
+  }, 1000);
+}
+
+
+
+
+document.getElementById("difficulty").addEventListener("change", function () {
+  const level = this.value;
+  const setTimeInput = document.getElementById("set-time");
+  if (level === "easy") setTimeInput.value = 900;
+  else if (level === "hard") setTimeInput.value = 300;
+  else setTimeInput.value = 600;
+});
+
+document.getElementById("difficulty").addEventListener("change", function () {
+  const level = this.value;
+  const setTimeInput = document.getElementById("set-time");
+  if (level === "easy") setTimeInput.value = 900;
+  else if (level === "hard") setTimeInput.value = 300;
+  else setTimeInput.value = 600;
+});
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+  const difficulty = document.getElementById("difficulty");
+  const setTimeInput = document.getElementById("set-time");
+  if (difficulty && setTimeInput) {
+    function syncDifficultyTime() {
+      if (difficulty.value === "hard") setTimeInput.value = 900;
+      else if (difficulty.value === "medium") setTimeInput.value = 600;
+      else setTimeInput.value = 300;
+    }
+    difficulty.addEventListener("change", syncDifficultyTime);
+    syncDifficultyTime(); // 초기 반영
+  }
+});
+
+</script>
+
+<div id="controls" style="margin-bottom: 20px;">
+  <label>난이도:
+    
+<select id="difficulty">
+  <option value="easy">쉬움 (900초)</option>
+  <option value="medium" selected>보통 (600초)</option>
+  <option value="hard">어려움 (300초)</option>
+</select>
+
+  </label>
+  <span id="scoreboard" style="margin-left: 20px;">📊 점수: <span id="score">0</span></span><br><br>
+  
+  <button id="shuffle-btn">🔄 순서 섞기</button>
+  
+  
+  
+</div>
+
+<div id="container"></div>
+<script>
+(function () {
+  function syncDifficultyTime() {
+    const difficulty = document.getElementById("difficulty");
+    const setTimeInput = document.getElementById("set-time");
+    if (!difficulty || !setTimeInput) return;
+    if (difficulty.value === "easy") setTimeInput.value = 900;
+    else if (difficulty.value === "medium") setTimeInput.value = 600;
+    else setTimeInput.value = 300;
+  }
+
+  window.addEventListener("load", function () {
+    syncDifficultyTime();
+    const difficulty = document.getElementById("difficulty");
+    if (difficulty) {
+      difficulty.addEventListener("change", syncDifficultyTime);
+    }
+  });
+})();
+
+</script>
+
+<script>
+  let firstClicked = null;
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("container");
+
+    container.addEventListener("click", (e) => {
+      const box = e.target.closest(".image-box");
+      if (!box) return;
+
+      if (!firstClicked) {
+        firstClicked = box;
+        box.style.border = "4px solid red";  // 선택 표시
+      } else if (firstClicked === box) {
+        firstClicked.style.border = "2px solid #ccc";  // 다시 클릭하면 해제
+        firstClicked = null;
+      } else {
+        // innerHTML을 이용한 완전 교환
+        const tempHTML = firstClicked.innerHTML;
+        firstClicked.innerHTML = box.innerHTML;
+        box.innerHTML = tempHTML;
+
+        firstClicked.style.border = "2px solid #ccc";
+        firstClicked = null;
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
